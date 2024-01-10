@@ -3,7 +3,7 @@ import tomlkit
 import argparse
 import os
 import sys
-from typing import Optional, TextIO
+from typing import Union, AnyStr, IO
 from pathlib import Path
 
 def pyproject_toml() -> Path:
@@ -52,10 +52,13 @@ class Pyproject:
 
         return self.document
 
-    def write_to(self, path):
-        with open(path, "w") as pyproject_file:
-            contents = self.build()
-            tomlkit.dump(contents, pyproject_file)
+    def write_to(self, out: Union[str, Path, IO[str]]):
+        contents = self.build()
+        if isinstance(out, str) or isinstance(out, Path):
+            with open(out, "w") as pyproject_file:
+                tomlkit.dump(contents, pyproject_file)
+        else:
+            tomlkit.dump(contents, out)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -64,20 +67,22 @@ def main():
     parser.add_argument("-d", "--deps", type=str, nargs="*", help="Dependencies to add")
     parser.add_argument("-o", "--optional-deps", type=str, action="append", nargs="*", help="Optional dependencies, first parameter is the namespace (such as 'dev')")
     parser.add_argument("--defaults", action="store_true", help="Apply defaults")
+    parser.add_argument("--dry-run", action="store_true")
 
     args = parser.parse_args()
 
     current_directory = Path(".")
-    if len(os.listdir(current_directory)) != 0:
-        print("Current directory is not empty; exiting...", file=sys.stderr)
-        sys.exit(1)
-    else:
-        package_name = args.name.replace("-", "_")
-        package_path = current_directory/"src"/package_name
+    if not args.dry_run:
+        if len(os.listdir(current_directory)) != 0:
+            print("Current directory is not empty; exiting...", file=sys.stderr)
+            sys.exit(1)
+        else:
+            package_name = args.name.replace("-", "_")
+            package_path = current_directory/"src"/package_name
 
-        os.makedirs(package_path)
-        (package_path/"main.py").touch()
-        (package_path/"__init__.py").touch()
+            os.makedirs(package_path)
+            (package_path/"main.py").touch()
+            (package_path/"__init__.py").touch()
 
     pyproject = Pyproject(args.name)
     if args.v:
@@ -92,7 +97,10 @@ def main():
         pyproject.add_dependencies("pydantic", "requests")
         pyproject.add_optional_dependencies("dev", ["pytest", "pyfakefs", "pytest-mock"])
 
-    pyproject.write_to(current_directory/"pyproject.toml")
+    if args.dry_run:
+        pyproject.write_to(sys.stdout)
+    else:
+        pyproject.write_to(current_directory/"pyproject.toml")
 
 if __name__ == "__main__":
     main()
