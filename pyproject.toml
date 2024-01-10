@@ -13,6 +13,9 @@ dev = [
     "pyfakefs",
 ]
 
+[project.scripts]
+pyproject-scaffold = "pyproject_scaffold.main:main"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
