@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 
 [project]
 name = "pyproject-scaffold"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = ["tomli==2.0.1", "tomli-w==1.0.0"]
 
 [project.optional-dependencies]
