@@ -1,6 +1,5 @@
-import tomlkit
-from tomlkit.items import Table
-from tomlkit.container import Container
+import tomli
+import tomli_w
 
 import argparse
 import os
@@ -12,10 +11,10 @@ def pyproject_toml() -> Path:
     installation_dir = Path(__file__).parent
     return installation_dir/"static"/"pyproject.toml"
 
-def static_pyproject() -> tomlkit.TOMLDocument:
+def static_pyproject() -> dict:
     static_pyproject = pyproject_toml()
-    with open(static_pyproject, "r") as f:
-        base_pyproject = tomlkit.parse(f.read())
+    with open(static_pyproject, "rb") as f:
+        base_pyproject = tomli.load(f)
 
     return base_pyproject
 
@@ -31,7 +30,7 @@ class Pyproject:
         self._version = "0.1.0"
 
     def _setup_optional_dependencies(self):
-        self.project["optional-dependencies"] = tomlkit.table()
+        self.project["optional-dependencies"] = {}
         return self.project["optional-dependencies"]
 
     def add_dependencies(self, *dependencies: str):
@@ -55,7 +54,6 @@ class Pyproject:
 
         if self.optional_dependencies:
             self.project["optional-dependencies"] = self.optional_dependencies  # type: ignore
-            self.project.add(tomlkit.nl())
 
         self.project["version"] = self._version  #type: ignore
 
@@ -64,10 +62,11 @@ class Pyproject:
     def write_to(self, out: Union[str, Path, IO[str]]):
         contents = self.build()
         if isinstance(out, str) or isinstance(out, Path):
-            with open(out, "w") as pyproject_file:
-                tomlkit.dump(contents, pyproject_file)
+            with open(out, "wb") as pyproject_file:
+                tomli_w.dump(contents, pyproject_file)
         else:
-            tomlkit.dump(contents, out)
+            output = tomli_w.dumps(contents)
+            print(output, file=out)
 
 def main():
     parser = argparse.ArgumentParser()

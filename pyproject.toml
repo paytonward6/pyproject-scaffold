@@ -4,7 +4,7 @@ requires = ["setuptools", "wheel"]
 [project]
 name = "pyproject-scaffold"
 version = "0.1.2"
-dependencies = ["tomlkit==0.12.3"]
+dependencies = ["tomli==2.0.1", "tomli-w==1.0.0"]
 
 [project.optional-dependencies]
 dev = [
@@ -16,12 +16,8 @@ dev = [
 [project.scripts]
 pyproject-scaffold = "pyproject_scaffold.main:main"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
-
 [tool.setuptools.packages.find]
 where = ["src"]
-namespaces = false
 
 [tool.setuptools.package-data]
 "*" = ["static/*.toml"]
