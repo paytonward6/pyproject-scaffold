@@ -6,13 +6,6 @@ name = "example-name"
 version = "0.1.0"
 dependencies = []
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    #  "pytest-mock",
-    #  "pyfakefs",
-]
-
 [tool.setuptools]
 package-dir = {"" = "src"}
 

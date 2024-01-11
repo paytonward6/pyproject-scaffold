@@ -1,9 +1,11 @@
 import tomlkit
+from tomlkit.items import Table
+from tomlkit.container import Container
 
 import argparse
 import os
 import sys
-from typing import Union, AnyStr, IO
+from typing import Union, AnyStr, IO, Optional
 from pathlib import Path
 
 def pyproject_toml() -> Path:
@@ -24,7 +26,7 @@ class Pyproject:
         self.project = self.document["project"]
         self.project_name = project_name
         self.dependencies: list[str] = []
-        self.optional_dependencies: dict[str, list[str]] = self._setup_optional_dependencies()
+        self.optional_dependencies: Optional[dict[str, list[str]]] = None
 
         self._version = "0.1.0"
 
@@ -37,6 +39,9 @@ class Pyproject:
             self.dependencies.append(dependency)
 
     def add_optional_dependencies(self, namespace: str, dependencies: list[str]):
+        if not self.optional_dependencies:
+            self.optional_dependencies = self._setup_optional_dependencies()
+
         self.optional_dependencies[namespace] = []
         for dependency in dependencies:
             self.optional_dependencies[namespace].append(dependency)
@@ -47,7 +52,11 @@ class Pyproject:
     def build(self):
         self.project["name"] = self.project_name  # type: ignore
         self.project["dependencies"] = self.dependencies  # type: ignore
-        self.project["optional-dependencies"] = self.optional_dependencies  # type: ignore
+
+        if self.optional_dependencies:
+            self.project["optional-dependencies"] = self.optional_dependencies  # type: ignore
+            self.project.add(tomlkit.nl())
+
         self.project["version"] = self._version  #type: ignore
 
         return self.document
